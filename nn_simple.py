@@ -17,7 +17,7 @@ from torchvision.transforms import ToTensor, Lambda, Compose, Normalize
 import matplotlib.pyplot as plt
 
 
-#%% # MNIST bug, on doit aller le chercher manuellement 
+#%% # MNIST bug, on doit aller le chercher manuellement (python - HTTP Error 503: Service Unavailable whan trying to download MNIST data. (s. d.). Stack Overflow. https://stackoverflow.com/questions/66646604/http-error-503-service-unavailable-whan-trying-to-download-mnist-data)
 # on a seulement besoin de l'exécuter une fois
 # on va faire des appels natifs
 if not os.path.exists("MNIST"):
@@ -147,7 +147,7 @@ class NeuralNet(nn.Module):
             ))
 
     @torch.no_grad()
-    def set_weights_and_bias(self, x:torch.Tensor):
+    def set_weights_and_bias(self, x:torch.Tensor) -> None:
         """Fonction utilitaire pour mettre à jour les poids et les biais du réseau de neurones
            à partir d'un individu issu d'un algorithme d'optimisation quelconque.
 
