@@ -2,7 +2,7 @@
 # Exemple d'un réseau de neurones très simple
 # adapté de https://pytorch.org/tutorials/beginner/basics/quickstart_tutorial.html
 #
-# Cet exemple emprunte certaines bonnes pratiques mais est loin d'être parfait
+# Cet exemple emprunte certaines bonnes pratiques, mais est loin d'être parfait
 # Il vous donnera la base nécessaire pour implémenter l'entrainement par algorithme évolutif
 #
 
@@ -57,8 +57,7 @@ test_data = datasets.MNIST(
 # Création des dataloader
 # On va utiliser les dataloader pour charger les images dynamiquement et appliquer les transformations désirées.
 # Dans notre cas, la transformation est torchvision.transforms.ToTensor()
-# C'est la façon privilégiée de faire, en particulier lorsqu'on a des grosses bases de données qui ne peuvent pas
-# êtres complètement stockées en mémoire vive.
+# C'est la façon privilégiée de faire, en particulier lorsqu'on a de grosses bases de données qui ne peuvent pas être complètement stockées en mémoire vive.
 # On va tricher sur le batch size pour simplifier l'entrainement : on va tout charger en mémoire (ce sont des petites images donc ça va aller)
 train_batch_size = 60000
 test_batch_size = 10000
@@ -100,7 +99,7 @@ class NeuralNet(nn.Module):
     @torch.no_grad()
     def forward(self, x:torch.Tensor) -> torch.Tensor:
         """
-        Calcule le résultat du réseaux de neurones sur une ou plusieurs images.
+        Calcule le résultat du réseau de neurones sur une ou plusieurs images.
 
         Args:
             x (torch.Tensor): l'image d'entrée, normalisée et écrasée, taille [B,N] où:
@@ -132,10 +131,10 @@ class NeuralNet(nn.Module):
         return self.loss_fn(x, y)
 
     def get_weights_and_bias(self) -> torch.Tensor:
-        """Fonction utilitaire qui retourne un vecteur concatenant les poids et biais de notre réseau de neuronnes.
+        """Fonction utilitaire qui retourne un vecteur concaténant les poids et biais de notre réseau de neurones.
 
         Returns:
-            torch.Tensor: un vecteur de dimension 16*784+16*16+10*16+16+16+10 qui représente une concaténation applatie
+            torch.Tensor: un vecteur de dimension 16*784+16*16+10*16+16+16+10 qui représente une concaténation aplatie
              des poids des couches fc1,fc2,fc3 et des biais des couches fc1,fc2,fc3
         """
         return  torch.cat((
@@ -155,7 +154,7 @@ class NeuralNet(nn.Module):
            On va donc extraire et remettre en forme les sections respectives du vecteur et les assigner aux couches correspondantes
 
         Args:
-            x (torch.Tensor): un vecteur de dimension 16*784+16*16+10*16+16+16+10 qui représente une concaténation applatie
+            x (torch.Tensor): un vecteur de dimension 16*784+16*16+10*16+16+16+10 qui représente une concaténation aplatie
              des poids des couches fc1,fc2,fc3 et des biais des couches fc1,fc2,fc3
         """
         # les index des fin poids et des biais
@@ -190,7 +189,7 @@ class NeuralNet(nn.Module):
     
     @torch.no_grad()
     def fast_fonction_objective(self, x:torch.tensor, targets:torch.tensor) -> torch.Tensor:
-        """utiliser cette fonction pour le calcul du score du réseau de neuronnes
+        """utiliser cette fonction pour le calcul du score du réseau de neurones
 
         Args:
             x (torch.tensor): un tenseur de taille BxN contenant les données pour évaluation/entrainement
@@ -206,7 +205,7 @@ class NeuralNet(nn.Module):
         return self.loss(pred, targets) # le loss est le résultat de la fonction objective, on cherche à le minimiser
 
 #%%
-# Fonction d'évaluation de la performance de notre réseau de neuronnes
+# Fonction d'évaluation de la performance de notre réseau de neurones
 # https://pytorch.org/tutorials/beginner/basics/quickstart_tutorial.html
 def test(dataloader, model): 
     size = len(dataloader.dataset)
@@ -227,7 +226,8 @@ mnistNN = NeuralNet()
 
 # %%
 # Comme le dataloader est lent et qu'on peut stocker MNIST en mémoire, on va le faire pour 
-# rendre le calcul de la fonction objective beaucoup plus rapide
+# rendre le calcul de la fonction objective beaucoup plus rapide.
+# Il est donc recommandé d'utiliser la fonction fast_fonction_objective pour obtenir le loss 
 train_set = train_dataloader.dataset.data.flatten(-2)/255.
 train_targets = train_dataloader.dataset.targets
 
