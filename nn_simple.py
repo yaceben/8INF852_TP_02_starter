@@ -231,6 +231,12 @@ mnistNN = NeuralNet()
 train_set = train_dataloader.dataset.data.flatten(-2)/255.
 train_targets = train_dataloader.dataset.targets
 
+# pour calculer le loss/fitness du réseau sur les images
+# appelez 
+mnistNN.fast_fonction_objective(train_set, train_targets)
+# remarquez que si vous voulez évaluer plusieurs individus en même temps que vous pourriez instancier plusieurs NeuralNet...
+# ce n'est pas vraiment possible pour les réseaux énormes, mais dans ce cas ça devrait aller...
+
 #%%
 ##### IMPLÉMENTEZ VOTRE ALGORITHME ET ROUTINE D'ENTRAINEMENT ICI
 
