@@ -22,13 +22,13 @@ import matplotlib.pyplot as plt
 # on va faire des appels natifs
 if not os.path.exists("MNIST"):
     if "linux" in sys.platform:
-        !wget www.di.ens.fr/~lelarge/MNIST.tar.gz
-        !tar -zxvf MNIST.tar.gz
-        !rm MNIST.tar.gz
+        os.system("wget www.di.ens.fr/~lelarge/MNIST.tar.gz")
+        os.system("tar -zxvf MNIST.tar.gz")
+        os.system("rm MNIST.tar.gz")
     elif "win32" in sys.platform: 
-        !pwsh -command "Invoke-WebRequest http://www.di.ens.fr/~lelarge/MNIST.tar.gz -OutFile MNIST.tar.gz"
-        !pwsh -command "tar -zxvf MNIST.tar.gz"
-        !pwsh -command "rm MNIST.tar.gz"
+        os.system('pwsh -command "Invoke-WebRequest http://www.di.ens.fr/~lelarge/MNIST.tar.gz -OutFile MNIST.tar.gz"')
+        os.system('pwsh -command "tar -zxvf MNIST.tar.gz"')
+        os.system('pwsh -command "rm MNIST.tar.gz"')
     else:
         print("tough luck buddy!")
 
