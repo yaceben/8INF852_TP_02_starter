@@ -55,20 +55,16 @@ test_data = datasets.MNIST(
         Lambda(lambda x : torch.flatten(x))]) # https://pytorch.org/docs/stable/generated/torch.flatten.html
     )
 
-#%%
-# Création des dataloader
-# On va utiliser les dataloader pour charger les images dynamiquement et appliquer les transformations désirées.
-# Dans notre cas, la transformation est torchvision.transforms.ToTensor()
-# C'est la façon privilégiée de faire, en particulier lorsqu'on a de grosses bases de données qui ne peuvent pas être complètement stockées en mémoire vive.
-# On va tricher sur le batch size pour simplifier l'entrainement : on va tout charger en mémoire (ce sont des petites images donc ça va aller)
-train_batch_size = 60000
-test_batch_size = 10000
-train_dataloader = DataLoader(train_data, batch_size=train_batch_size, pin_memory=True)
-test_dataloader = DataLoader(test_data, batch_size=test_batch_size, pin_memory=True)
 
 # %%
+# pour entrainement éventuel sur gpu..., vu la taille du réseau, ça ne vaut probablement pas la peine...
+device = "cuda" if torch.cuda.is_available() else "cpu"
 
+# Comme on ne va pas entrainer en utilisant le SGD (ou autre) on a pas besoin de calculer automatiquement
+# le gradient durant les forward pass -- en gros, on sauve du temps de calcul
+# si vous voulez comparer à un entrainement classique vous devrez le remettre à True pour votre boucle d'entrainement classique
 torch.autograd.set_grad_enabled(False)
+
 class NeuralNet(nn.Module):
     """Implémente un réseau de neurones linéaire très simple (perceptron multicouche),
        inspiré de celui de 3blue1brown.
@@ -88,7 +84,7 @@ class NeuralNet(nn.Module):
     def __init__(self):
         """Initialise le réseau de neurones
         """
-        super(NeuralNet, self).__init__()
+        super().__init__()
         
         # les différentes couches
         self.fc1 = nn.Linear(28*28, 16)
@@ -118,8 +114,8 @@ class NeuralNet(nn.Module):
         """
         # on "applatit" l'image, le -2 indique que l'on joins les deux dernières dimensions, 
         # la largeur et la longueur pour que les pixels soient dans la même dimension 
-        x = torch.sigmoid(self.fc1(x)) # activation sur la première couche
-        x = torch.sigmoid(self.fc2(x)) # activation sur la deuxième couche
+        x = torch.relu(self.fc1(x)) # activation sur la première couche
+        x = torch.relu(self.fc2(x)) # activation sur la deuxième couche
         x = self.fc3(x) # calcul de la dernière couche
         return x
 
@@ -163,7 +159,7 @@ class NeuralNet(nn.Module):
              des poids des couches fc1,fc2,fc3 et des biais des couches fc1,fc2,fc3
         """
         # les index des fin poids et des biais
-        iw1,iw2,iw3,ib1,ib2,ib3 = 12544, 12800, 12960, 12976, 12992, 13002
+        iw1,iw2,iw3,ib1,ib2,ib3 = 12_544, 12_800, 12_960, 12_976, 12_992, 13_002
         self.fc1.weight.data = x[0:iw1].reshape(16, 784)
         self.fc2.weight.data = x[iw1:iw2].reshape(16, 16)
         self.fc3.weight.data = x[iw2:iw3].reshape(10, 16)
@@ -171,27 +167,6 @@ class NeuralNet(nn.Module):
         self.fc2.bias.data = x[ib1:ib2]
         self.fc3.bias.data = x[ib2:ib3]
 
-    #@torch.no_grad()
-    def fonction_objective(self, dataloader:DataLoader) -> torch.Tensor:
-        """Bonne pratique pour le chargement de données -- Ne pas utiliser pour cet exercice
-
-        Args:
-            dataloader (DataLoader): le dataloader qui contient les données pour évaluation/entrainement
-
-        Returns:
-            torch.Tensor: le loss/le score du réseau de neurones
-        """
-        loss = torch.zeros(1)
-
-        for batch, (X,y) in enumerate(dataloader):
-            # on calcule l'erreur de prédiction
-            pred = self(X)
-            loss += self.loss(pred, y) # le loss est le résultat de la fonction objective, on cherche à le minimiser
-
-        # on va calculer le loss moyen
-        #loss = loss / len(dataloader)
-        return loss
-    
     #@torch.no_grad()
     def fast_fonction_objective(self, x:torch.tensor, targets:torch.tensor) -> torch.Tensor:
         """utiliser cette fonction pour le calcul du score du réseau de neurones
@@ -203,11 +178,8 @@ class NeuralNet(nn.Module):
         Returns:
             torch.Tensor: le loss/le score du réseau de neurones
         """
-        loss = torch.zeros(1)
-
         # on calcule l'erreur de prédiction
-        pred = self(x)
-        return self.loss(pred, targets) # le loss est le résultat de la fonction objective, on cherche à le minimiser
+        return self.loss(self(x), targets) # le loss est le résultat de la fonction objective, on cherche à le minimiser
 
 #%%
 # Fonction d'évaluation de la performance de notre réseau de neurones
@@ -224,10 +196,26 @@ def test(dataloader, model):
             correct += (pred.argmax(1) == y).type(torch.float).sum().item()
     test_loss /= size
     correct /= size
-    print(f"Test Error: \n Accuracy: {(100*correct):>0.1f}%, Avg loss: {test_loss:>8f} \n")        
+    print(f"Erreur de test: \n Exactitude: {(100*correct):>0.1f}%, Loss moyen: {test_loss:>8f} \n")        
+
 
 # %%
+### Le code à partir de ce point pourrait probablement se retrouver dans un autre fichier pour rendre la lecture/ gestion plus facile
 mnistNN = NeuralNet()
+
+
+#%%
+# Création des dataloader
+# On va utiliser les dataloader pour charger les images dynamiquement et appliquer les transformations désirées.
+# Dans notre cas, la transformation est torchvision.transforms.ToTensor()
+# C'est la façon privilégiée de faire, en particulier lorsqu'on a de grosses bases de données qui ne peuvent pas être complètement stockées en mémoire vive.
+# On va tricher sur le batch size pour simplifier l'entrainement : on va tout charger en mémoire (ce sont des petites images donc ça va aller)
+train_size = 60_000
+test_size = 10_000
+train_dataloader = DataLoader(train_data, batch_size=train_size, pin_memory=True)
+test_dataloader = DataLoader(test_data, batch_size=test_size, pin_memory=True)
+
+MINI_BATCH_SZ = 64
 
 # %%
 # Comme le dataloader est lent et qu'on peut stocker MNIST en mémoire, on va le faire pour 
@@ -243,5 +231,45 @@ mnistNN.fast_fonction_objective(train_set, train_targets)
 # ce n'est pas vraiment possible pour les réseaux énormes, mais dans ce cas ça devrait aller...
 
 #%%
-##### IMPLÉMENTEZ VOTRE ALGORITHME ET ROUTINE D'ENTRAINEMENT ICI
+##### IMPLÉMENTEZ VOTRE ALGORITHME ET ROUTINE D'ENTRAINEMENT ICI 
+# en gros je vous suggère d'utiliser la logique de mini-batch
+# ça devrait ressembler à quelquechose du genre
+# NOTE: ça va bugger comme il y un paquet de variables non déclarées et que c'est pour fin de démonstration seulement
+
+# on va court circuiter un peu le concept d'époque d'entrainement et de boucle de minibatch
+num_mini_batch = int(train_size / MINI_BATCH_SZ) # si ce ne sont pas des multiples, on "drop" le reste de la division, e.g. on ne veut pas mettre à jour les poids basé sur une seule image...
+idcs = np.arange(train_size)
+
+for i in range(max_generation):
+
+    # à chaque époque on veut brasser l'ordre des images pour garantir une meilleure généralisation
+    idcs = np.random.shuffle(idcs)
+    
+    for j in range(num_mini_batch):
+        # logique population si approprié
+        # ... 
+
+        # boucle d'évaluation de la qualité des individus
+        for k in range(taille_population):
+
+            mnistNN.set_weights_and_bias(individu[k])
+            qualité_individu[k] = mnistNN.fast_fonction_objective(train_set[idcs[j*MINI_BATCH_SZ:(j+1)*MINI_BATCH_SZ]], train_targets[idcs[j*MINI_BATCH_SZ:(j+1)*MINI_BATCH_SZ]])
+
+
+        # logique algorithme évolutif 
+        # ...
+        # ...
+        # ...
+
+        # incrémente génération
+        i += 1
+
+    # on a fait une époque, on peut peut être afficher des stats ou qqchose du genre, ou pas...
+
+
+
+
+
+
+
 
