@@ -15,7 +15,8 @@ from torch.utils.data import DataLoader
 from torchvision import datasets
 from torchvision.transforms import ToTensor, Lambda, Compose, Normalize
 import matplotlib.pyplot as plt
-
+import numpy as np
+from tqdm import tqdm
 
 #%% # MNIST bug, on doit aller le chercher manuellement (python - HTTP Error 503: Service Unavailable whan trying to download MNIST data. (s. d.). Stack Overflow. https://stackoverflow.com/questions/66646604/http-error-503-service-unavailable-whan-trying-to-download-mnist-data)
 # on a seulement besoin de l'exécuter une fois
@@ -66,6 +67,8 @@ train_dataloader = DataLoader(train_data, batch_size=train_batch_size, pin_memor
 test_dataloader = DataLoader(test_data, batch_size=test_batch_size, pin_memory=True)
 
 # %%
+
+torch.autograd.set_grad_enabled(False)
 class NeuralNet(nn.Module):
     """Implémente un réseau de neurones linéaire très simple (perceptron multicouche),
        inspiré de celui de 3blue1brown.
@@ -96,8 +99,9 @@ class NeuralNet(nn.Module):
         self.logsoftmax = nn.LogSoftmax(dim=0)
         # la fonction pour calculer le loss (l'erreur de prédiction)
         self.loss_fn = nn.CrossEntropyLoss()
+        self.float() # Pas besoin de double precision, beaucoup plus rapide aussi...
 
-    @torch.no_grad()
+    #@torch.no_grad()
     def forward(self, x:torch.Tensor) -> torch.Tensor:
         """
         Calcule le résultat du réseau de neurones sur une ou plusieurs images.
@@ -147,7 +151,7 @@ class NeuralNet(nn.Module):
             self.fc3.bias.data.flatten()
             ))
 
-    @torch.no_grad()
+    #@torch.no_grad()
     def set_weights_and_bias(self, x:torch.Tensor) -> None:
         """Fonction utilitaire pour mettre à jour les poids et les biais du réseau de neurones
            à partir d'un individu issu d'un algorithme d'optimisation quelconque.
@@ -167,7 +171,7 @@ class NeuralNet(nn.Module):
         self.fc2.bias.data = x[ib1:ib2]
         self.fc3.bias.data = x[ib2:ib3]
 
-    @torch.no_grad()
+    #@torch.no_grad()
     def fonction_objective(self, dataloader:DataLoader) -> torch.Tensor:
         """Bonne pratique pour le chargement de données -- Ne pas utiliser pour cet exercice
 
@@ -188,7 +192,7 @@ class NeuralNet(nn.Module):
         #loss = loss / len(dataloader)
         return loss
     
-    @torch.no_grad()
+    #@torch.no_grad()
     def fast_fonction_objective(self, x:torch.tensor, targets:torch.tensor) -> torch.Tensor:
         """utiliser cette fonction pour le calcul du score du réseau de neurones
 
@@ -229,7 +233,7 @@ mnistNN = NeuralNet()
 # Comme le dataloader est lent et qu'on peut stocker MNIST en mémoire, on va le faire pour 
 # rendre le calcul de la fonction objective beaucoup plus rapide.
 # Il est donc recommandé d'utiliser la fonction fast_fonction_objective pour obtenir le loss 
-train_set = train_dataloader.dataset.data.flatten(-2)/255.
+train_set = (train_dataloader.dataset.data.flatten(-2)/255.)
 train_targets = train_dataloader.dataset.targets
 
 # pour calculer le loss/fitness du réseau sur les images
