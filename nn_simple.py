@@ -26,6 +26,7 @@ if not os.path.exists("MNIST"):
         os.system("tar -zxvf MNIST.tar.gz")
         os.system("rm MNIST.tar.gz")
     elif "win32" in sys.platform: 
+        os.system("pwsh -command $ProgressPreference = 'SilentlyContinue'")
         os.system('pwsh -command "Invoke-WebRequest http://www.di.ens.fr/~lelarge/MNIST.tar.gz -OutFile MNIST.tar.gz"')
         os.system('pwsh -command "tar -zxvf MNIST.tar.gz"')
         os.system('pwsh -command "rm MNIST.tar.gz"')
