@@ -243,7 +243,7 @@ idcs = np.arange(train_size)
 for i in range(max_generation):
 
     # à chaque époque on veut brasser l'ordre des images pour garantir une meilleure généralisation
-    idcs = np.random.shuffle(idcs)
+    np.random.shuffle(idcs)
     
     for j in range(num_mini_batch):
         # logique population si approprié
@@ -263,6 +263,8 @@ for i in range(max_generation):
 
     # on a fait une époque, on peut peut être afficher des stats ou qqchose du genre, ou pas...
     # on devrait idéalement au moins tester le training et le validation loss (on peut tricher ici et le faire sur le validation loss sur le test_set...)
+
+
 
 
 
