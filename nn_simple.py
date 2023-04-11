@@ -261,11 +261,8 @@ for i in range(max_generation):
         # ...
         # ...
 
-        # incrémente génération
-        i += 1
-
     # on a fait une époque, on peut peut être afficher des stats ou qqchose du genre, ou pas...
-
+    # on devrait idéalement au moins tester le training et le validation loss (on peut tricher ici et le faire sur le validation loss sur le test_set...)
 
 
 
